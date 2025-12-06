@@ -167,6 +167,22 @@ jobs:
             fi
           }
 
+      - name: Verify Lambda deployments
+        run: |
+          echo "=== Verifying Lambda Function Deployments ==="
+          echo ""
+          echo "API Lambda:"
+          aws lambda get-function --function-name email-api-development --query 'Configuration.[FunctionName,LastModified,CodeSize,Version]' --output table 2>/dev/null || echo "Function not found or error"
+          echo ""
+          echo "CSV Processing Lambda:"
+          aws lambda get-function --function-name email-csv-processing-development --query 'Configuration.[FunctionName,LastModified,CodeSize,Version]' --output table 2>/dev/null || echo "Function not found or error"
+          echo ""
+          echo "Email Worker Lambda:"
+          aws lambda get-function --function-name email-worker-development --query 'Configuration.[FunctionName,LastModified,CodeSize,Version]' --output table 2>/dev/null || echo "Function not found or error"
+          echo ""
+          echo "=== Lambda Layer ==="
+          aws lambda list-layer-versions --layer-name email-marketing-dependencies-development --query 'LayerVersions[0].[Version,CreatedDate,CodeSize]' --output table 2>/dev/null || echo "Layer not found or error"
+
       - name: Get API URL
         id: api-url
         run: |
