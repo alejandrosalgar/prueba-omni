@@ -148,7 +148,9 @@ jobs:
           export ENVIRONMENT=development
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          cdk deploy --all --require-approval never
+          # Deploy all stacks together - CDK will handle dependencies
+          # Use concurrency 1 to avoid export conflicts when updating layer
+          cdk deploy --all --require-approval never --concurrency 1
 
       - name: Get API URL
         id: api-url
@@ -207,7 +209,9 @@ jobs:
           export ENVIRONMENT=production
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID_PROD }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          cdk deploy --all --require-approval never
+          # Deploy all stacks together - CDK will handle dependencies
+          # Use concurrency 1 to avoid export conflicts when updating layer
+          cdk deploy --all --require-approval never --concurrency 1
 
       - name: Get API URL
         id: api-url
