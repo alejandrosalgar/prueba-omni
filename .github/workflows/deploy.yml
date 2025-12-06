@@ -155,16 +155,16 @@ jobs:
           # Check if failure was due to layer export conflict
           if [ $? -ne 0 ]; then
             if echo "$DEPLOY_OUTPUT" | grep -q "Cannot update export.*as it is in use"; then
-              echo "⚠️ WARNING: Layer export conflict detected. Layer update skipped, but other stacks deployed successfully."
+              echo "WARNING: Layer export conflict detected. Layer update skipped, but other stacks deployed successfully."
               echo "The existing layer version will continue to be used by dependent stacks."
               echo "This is a known CloudFormation limitation when updating exports."
               echo ""
               echo "Attempting to deploy remaining stacks..."
               # Continue deployment of other stacks (excluding layer)
               cdk deploy EmailMarketingStorageStack EmailMarketingSecurityStack EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never --concurrency 3 || true
-              echo "✅ Other stacks deployed successfully. Layer will use existing version."
+              echo "Other stacks deployed successfully. Layer will use existing version."
             else
-              echo "❌ Deployment failed for a different reason:"
+              echo "Deployment failed for a different reason:"
               echo "$DEPLOY_OUTPUT"
               exit ${DEPLOY_EXIT_CODE:-1}
             fi

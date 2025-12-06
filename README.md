@@ -2,7 +2,7 @@
 
 A production-ready serverless email marketing system built with AWS CDK, FastAPI, and GraphQL. This system allows you to upload CSV files with email campaigns, process them asynchronously, send emails via AWS SES, and query email status through a GraphQL API.
 
-## 🏗️ Architecture
+## Architecture
 
 ### System Overview
 
@@ -83,29 +83,29 @@ graph TB
 - **AWS X-Ray**: Distributed tracing
 - **CloudWatch**: Logging and metrics
 
-## 📋 Features
+## Features
 
 ### Functional Requirements
 
-✅ **CSV Upload**
+**CSV Upload**
 - Direct multipart/form-data upload
 - Pre-signed URL upload option
 - File size validation (100MB max)
 - CSV structure validation
 
-✅ **CSV Processing**
+**CSV Processing**
 - Automatic parsing and validation
 - Idempotency (prevents duplicate processing)
 - Batch processing with error handling
 - Status tracking in DynamoDB
 
-✅ **Email Sending**
+**Email Sending**
 - Asynchronous processing via SQS
 - SES integration (with dry-run mode)
 - Error handling and retries
 - DLQ for failed messages
 
-✅ **GraphQL API**
+**GraphQL API**
 - Query email status by:
   - Status (PENDING, SENT, ERROR)
   - Date range (from/to)
@@ -115,36 +115,36 @@ graph TB
 
 ### Non-Functional Requirements
 
-✅ **Idempotency**
+**Idempotency**
 - File hash-based duplicate detection
 - Batch-level idempotency checks
 - Email-level duplicate prevention
 
-✅ **Error Handling**
+**Error Handling**
 - DLQ for failed messages
 - Retry mechanism (max 3 attempts)
 - Partial batch failure handling
 - Comprehensive error logging
 
-✅ **Security**
+**Security**
 - IAM roles with least privilege
 - Secrets Manager for sensitive data
 - S3 bucket encryption
 - API Gateway CORS configuration
 
-✅ **Observability**
+**Observability**
 - CloudWatch Logs
 - X-Ray tracing
 - Custom metrics (via CloudWatch)
 - Structured logging
 
-✅ **Cost Optimization**
+**Cost Optimization**
 - Serverless architecture (pay-per-use)
 - DynamoDB on-demand billing
 - S3 lifecycle policies
 - Reserved concurrency limits
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -222,7 +222,7 @@ graph TB
    aws ses verify-email-identity --email-address your-email@example.com
    ```
 
-## 🔄 CI/CD con GitHub Actions
+## CI/CD con GitHub Actions
 
 El proyecto incluye workflows de GitHub Actions para CI/CD automático.
 
@@ -262,7 +262,7 @@ feature branch → PR → develop → main
 
 Ver [`.github/workflows/README.md`](.github/workflows/README.md) para más detalles.
 
-## 🛠️ Code Quality
+## Code Quality
 
 El proyecto incluye herramientas de formateo automático:
 
@@ -297,7 +297,7 @@ pre-commit install
 
 Los hooks se ejecutarán automáticamente antes de cada commit.
 
-## 📖 API Documentation
+## API Documentation
 
 ### Endpoints
 
@@ -422,7 +422,7 @@ bob@example.com,Promo,Get 20% off this week.
 - Required columns: `email`, `subject`, `content`
 - Email format validation
 
-## 🧪 Testing
+## Testing
 
 ### Quick Test (PowerShell)
 
@@ -500,7 +500,7 @@ bob@example.com,Promo,Get 20% off this week.
 
 Import `postman_collection.json` into Postman or Insomnia for easy testing.
 
-## 📊 Monitoring
+## Monitoring
 
 ### CloudWatch Metrics
 
@@ -525,7 +525,7 @@ All Lambda functions log to CloudWatch Logs:
 - `/aws/lambda/email-csv-processing-{environment}`
 - `/aws/lambda/email-worker-{environment}`
 
-## 💰 Cost Estimation
+## Cost Estimation
 
 **Monthly costs (approximate, low traffic):**
 
@@ -546,7 +546,7 @@ All Lambda functions log to CloudWatch Logs:
 - Set reserved concurrency limits
 - Use CloudWatch Logs retention policies
 
-## 🔒 Security
+## Security
 
 ### IAM Roles
 
@@ -569,7 +569,7 @@ Sensitive configuration stored in AWS Secrets Manager:
 - DynamoDB: Encryption at rest (AWS-managed keys)
 - SQS: Server-side encryption (SQS-managed keys)
 
-## 🛠️ Development
+## Development
 
 ### Project Structure
 
@@ -645,7 +645,7 @@ prueba-omni/
 - `CDK_DEFAULT_ACCOUNT`: AWS account ID
 - `CDK_DEFAULT_REGION`: AWS region
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -669,11 +669,11 @@ prueba-omni/
    - Verify environment variables
    - Check IAM permissions
 
-## 📝 License
+## License
 
 This project is provided as-is for demonstration purposes.
 
-## 🤝 Contributing
+## Contributing
 
 This is a technical challenge project. For production use, consider:
 - Adding unit tests
@@ -683,7 +683,7 @@ This is a technical challenge project. For production use, consider:
 - Adding API authentication
 - Implementing multi-region deployment
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
