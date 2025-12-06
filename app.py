@@ -10,6 +10,7 @@ from typing import List
 
 import aws_cdk as cdk
 from aws_cdk import Environment, Tags
+
 from infrastructure.core.api_stack import EmailMarketingApiStack
 from infrastructure.core.layer_stack import EmailMarketingLayerStack
 from infrastructure.core.processing_stack import EmailProcessingStack

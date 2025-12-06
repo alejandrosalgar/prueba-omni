@@ -258,4 +258,3 @@ class EmailSecurityStack(Stack):
             "config_secret_arn": self.config_secret.secret_arn,
             "config_secret_name": self.config_secret.secret_name,
         }
-

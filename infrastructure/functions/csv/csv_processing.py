@@ -157,9 +157,7 @@ def process_csv_file(batch_id: str, s3_bucket: str, s3_key: str) -> Dict[str, An
             email = row["email"].strip().lower()
 
             try:
-                existing = table.get_item(
-                    Key={"batch_id": batch_id, "email": email}
-                )
+                existing = table.get_item(Key={"batch_id": batch_id, "email": email})
                 if "Item" in existing:
                     skipped_count += 1
                     continue
@@ -281,4 +279,3 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "statusCode": 500,
             "body": json.dumps({"error": str(e)}),
         }
-

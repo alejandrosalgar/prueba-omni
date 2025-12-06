@@ -113,4 +113,3 @@ COST_ESTIMATION = {
     "cloudwatch": "~$1-3 (logs + metrics)",
     "total": "~$12-25/month (low traffic)",
 }
-

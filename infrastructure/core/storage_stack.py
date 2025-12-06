@@ -18,9 +18,9 @@ from infrastructure.shared.constants import (
     DEFAULT_TAGS,
     DYNAMODB_POINT_IN_TIME_RECOVERY,
     DYNAMODB_TABLE_NAME,
+    S3_BUCKET_PREFIX,
     S3_CSV_PREFIX,
     S3_VERSIONING_ENABLED,
-    S3_BUCKET_PREFIX,
 )
 
 
@@ -223,6 +223,5 @@ class EmailStorageStack(Stack):
             "csv_bucket_arn": self.csv_bucket.bucket_arn,
             "email_status_table_name": self.email_status_table.table_name,
             "email_status_table_arn": self.email_status_table.table_arn,
-            "email_status_table_stream_arn": self.email_status_table.table_stream_arn
-            or "",
+            "email_status_table_stream_arn": self.email_status_table.table_stream_arn or "",
         }

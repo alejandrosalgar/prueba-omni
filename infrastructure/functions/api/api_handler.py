@@ -193,9 +193,7 @@ async def get_presigned_url(filename: str = Form(...)) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error generating presigned URL: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating presigned URL: {str(e)}")
 
 
 schema = Schema(query=Query)

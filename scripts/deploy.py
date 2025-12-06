@@ -190,17 +190,13 @@ class EmailMarketingDeployer:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Deploy email marketing infrastructure")
-    parser.add_argument(
-        "action", choices=["deploy", "destroy"], help="Action to perform"
-    )
+    parser.add_argument("action", choices=["deploy", "destroy"], help="Action to perform")
     parser.add_argument(
         "--environment",
         default="development",
         help="Environment name (default: development)",
     )
-    parser.add_argument(
-        "--region", default="us-east-1", help="AWS region (default: us-east-1)"
-    )
+    parser.add_argument("--region", default="us-east-1", help="AWS region (default: us-east-1)")
     parser.add_argument("--stack", help="Specific stack to deploy/destroy")
 
     args = parser.parse_args()
@@ -224,4 +220,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

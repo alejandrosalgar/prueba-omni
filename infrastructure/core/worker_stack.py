@@ -77,9 +77,7 @@ class EmailWorkerStack(Stack):
         lambda_role_arn = self.security_outputs.get("lambda_execution_role_arn", "")
         lambda_role: Optional[iam.IRole] = None
         if lambda_role_arn:
-            lambda_role = iam.Role.from_role_arn(
-                self, "LambdaExecutionRoleImport", lambda_role_arn
-            )
+            lambda_role = iam.Role.from_role_arn(self, "LambdaExecutionRoleImport", lambda_role_arn)
 
         # Use layer if provided
         layers = []
@@ -100,9 +98,7 @@ class EmailWorkerStack(Stack):
             environment={
                 "ENVIRONMENT": self.env_name,
                 "PROJECT_NAME": PROJECT_NAME,
-                "DYNAMODB_TABLE_NAME": self.storage_outputs.get(
-                    "email_status_table_name", ""
-                ),
+                "DYNAMODB_TABLE_NAME": self.storage_outputs.get("email_status_table_name", ""),
                 "SECRET_NAME": self.security_outputs.get("config_secret_name", ""),
             },
             tracing=_lambda.Tracing.ACTIVE,

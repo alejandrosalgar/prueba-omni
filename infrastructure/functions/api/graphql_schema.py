@@ -206,9 +206,7 @@ def list_email_status(
             items = all_items[:limit]
 
         elif from_date or to_date:
-            date_partition = (
-                from_date[:10] if from_date else datetime.now().strftime("%Y-%m-%d")
-            )
+            date_partition = from_date[:10] if from_date else datetime.now().strftime("%Y-%m-%d")
             response = table.query(
                 IndexName="created_at-index",
                 KeyConditionExpression=Key("date_partition").eq(date_partition),
@@ -253,9 +251,7 @@ def list_email_status(
 
         next_token_str: Optional[str] = None
         if last_evaluated_key:
-            next_token_str = base64.b64encode(
-                json.dumps(last_evaluated_key).encode()
-            ).decode()
+            next_token_str = base64.b64encode(json.dumps(last_evaluated_key).encode()).decode()
 
         return EmailStatusConnection(
             items=email_statuses,

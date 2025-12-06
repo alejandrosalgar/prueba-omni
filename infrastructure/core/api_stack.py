@@ -74,9 +74,7 @@ class EmailMarketingApiStack(Stack):
         lambda_role_arn = self.security_outputs.get("lambda_execution_role_arn", "")
         lambda_role: Optional[iam.IRole] = None
         if lambda_role_arn:
-            lambda_role = iam.Role.from_role_arn(
-                self, "LambdaExecutionRoleImport", lambda_role_arn
-            )
+            lambda_role = iam.Role.from_role_arn(self, "LambdaExecutionRoleImport", lambda_role_arn)
 
         # Use layer if provided
         layers = []
@@ -97,9 +95,7 @@ class EmailMarketingApiStack(Stack):
             environment={
                 "ENVIRONMENT": self.env_name,
                 "PROJECT_NAME": PROJECT_NAME,
-                "DYNAMODB_TABLE_NAME": self.storage_outputs.get(
-                    "email_status_table_name", ""
-                ),
+                "DYNAMODB_TABLE_NAME": self.storage_outputs.get("email_status_table_name", ""),
                 "S3_BUCKET_NAME": self.storage_outputs.get("csv_bucket_name", ""),
                 "CSV_PROCESSING_FUNCTION_NAME": self.processing_outputs.get(
                     "csv_processing_function_name", ""
