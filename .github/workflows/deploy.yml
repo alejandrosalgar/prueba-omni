@@ -148,11 +148,20 @@ jobs:
           export ENVIRONMENT=development
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          # Deploy all stacks together - CDK will handle dependencies
-          # If layer export conflict occurs, it means layer needs update but dependent stacks exist
-          # In that case, we need to update dependent stacks first, then layer, then dependent stacks again
-          # But CDK deploy --all should handle this automatically by updating dependent stacks first
-          cdk deploy --all --require-approval never --concurrency 3
+          # Try deploying all stacks together first
+          # If layer export conflict occurs, deploy in phases:
+          # 1. Update dependent stacks (to refresh their reference to layer export)
+          # 2. Update layer (now export can be updated)
+          # 3. Update dependent stacks again (to use new layer version)
+          if ! cdk deploy --all --require-approval never --concurrency 3; then
+            echo "Initial deployment failed, trying phased approach for layer update..."
+            # Phase 1: Update dependent stacks (no changes, just refresh export reference)
+            cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never || true
+            # Phase 2: Update layer (export should now be updatable)
+            cdk deploy EmailMarketingLayerStack --require-approval never || true
+            # Phase 3: Update all stacks together (dependent stacks will use new layer)
+            cdk deploy --all --require-approval never --concurrency 3
+          fi
 
       - name: Get API URL
         id: api-url
@@ -211,11 +220,20 @@ jobs:
           export ENVIRONMENT=production
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID_PROD }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          # Deploy all stacks together - CDK will handle dependencies
-          # If layer export conflict occurs, it means layer needs update but dependent stacks exist
-          # In that case, we need to update dependent stacks first, then layer, then dependent stacks again
-          # But CDK deploy --all should handle this automatically by updating dependent stacks first
-          cdk deploy --all --require-approval never --concurrency 3
+          # Try deploying all stacks together first
+          # If layer export conflict occurs, deploy in phases:
+          # 1. Update dependent stacks (to refresh their reference to layer export)
+          # 2. Update layer (now export can be updated)
+          # 3. Update dependent stacks again (to use new layer version)
+          if ! cdk deploy --all --require-approval never --concurrency 3; then
+            echo "Initial deployment failed, trying phased approach for layer update..."
+            # Phase 1: Update dependent stacks (no changes, just refresh export reference)
+            cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never || true
+            # Phase 2: Update layer (export should now be updatable)
+            cdk deploy EmailMarketingLayerStack --require-approval never || true
+            # Phase 3: Update all stacks together (dependent stacks will use new layer)
+            cdk deploy --all --require-approval never --concurrency 3
+          fi
 
       - name: Get API URL
         id: api-url
