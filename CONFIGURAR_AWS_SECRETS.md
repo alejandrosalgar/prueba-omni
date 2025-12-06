@@ -8,12 +8,12 @@ Este documento te guía paso a paso para configurar las credenciales de AWS en G
 
 ## ⚡ Inicio Rápido
 
-**⚠️ IMPORTANTE**: Las credenciales de AWS **NUNCA** deben estar en el código. Solo deben estar en GitHub Secrets.
+Si ya tienes tus credenciales de AWS (como en la imagen que viste):
 
 1. **Ve a GitHub**: https://github.com/alejandrosalgar/prueba-omni → **Settings** → **Secrets and variables** → **Actions**
-2. **Crea 3 secrets** con tus credenciales reales de AWS:
-   - `AWS_ACCESS_KEY_ID` = Tu Access Key ID real (formato: `AKIA...`)
-   - `AWS_SECRET_ACCESS_KEY` = Tu Secret Access Key real
+2. **Crea 3 secrets**:
+   - `AWS_ACCESS_KEY_ID` = Tu Access Key ID (ej: `AKIAIOSFODNN7EXAMPLE`)
+   - `AWS_SECRET_ACCESS_KEY` = Tu Secret Access Key (ej: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`)
    - `AWS_ACCOUNT_ID` = Tu Account ID (12 dígitos, solo números)
 3. **Haz push a `develop`** y el pipeline se ejecutará automáticamente
 
@@ -46,14 +46,13 @@ O puedes verlo en la consola de AWS:
 Si ya tienes un Access Key ID y Secret Access Key (como en la imagen de AWS Console que viste), puedes usarlas directamente:
 
 1. **Copia el Access Key ID**: 
-   - Formato típico: `AKIA` seguido de caracteres alfanuméricos
-   - ⚠️ **NUNCA** compartas esta clave públicamente
+   - Ejemplo de formato: `AKIAIOSFODNN7EXAMPLE` (reemplaza con tu Access Key ID real)
    - O desde AWS Console → IAM → Security credentials
 
 2. **Copia el Secret Access Key**:
-   - ⚠️ **Importante**: Copia el valor completo tal como aparece
+   - Ejemplo de formato: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` (reemplaza con tu Secret Access Key real)
+   - ⚠️ **Importante**: Copia el valor completo, incluyendo el símbolo `+` al inicio si lo tiene
    - ⚠️ **Solo se muestra una vez**: Si no lo guardaste, tendrás que crear nuevas credenciales
-   - ⚠️ **NUNCA** compartas esta clave públicamente
 
 3. **Guarda estas credenciales de forma segura** antes de continuar (las necesitarás en el Paso 3)
 
@@ -109,7 +108,8 @@ Es mejor crear un usuario IAM específico para CI/CD:
 1. **Name**: Escribe exactamente: `AWS_ACCESS_KEY_ID`
    - ⚠️ **Importante**: Debe ser exactamente así, con mayúsculas y guiones bajos
    
-2. **Secret**: Pega tu **Access Key ID** de AWS (formato: `AKIA...`)
+2. **Secret**: Pega tu **Access Key ID** de AWS
+   - Ejemplo de formato: `AKIAIOSFODNN7EXAMPLE` (usa tu Access Key ID real)
    
 3. **Click en "Add secret"**
 
@@ -117,7 +117,8 @@ Es mejor crear un usuario IAM específico para CI/CD:
 
 1. **Name**: Escribe exactamente: `AWS_SECRET_ACCESS_KEY`
    
-2. **Secret**: Pega tu **Secret Access Key** de AWS (copia el valor completo)
+2. **Secret**: Pega tu **Secret Access Key** de AWS
+   - Ejemplo de formato: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` (usa tu Secret Access Key real)
    - ⚠️ **Importante**: Copia todo el valor completo, incluyendo el símbolo `+` al inicio
    
 3. **Click en "Add secret"**
