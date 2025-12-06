@@ -148,11 +148,13 @@ jobs:
           export ENVIRONMENT=development
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          # Deploy stacks in order to avoid CloudFormation export conflicts
-          # First deploy base stacks (storage, security, layer)
-          cdk deploy EmailMarketingStorageStack EmailMarketingSecurityStack EmailMarketingLayerStack --require-approval never --concurrency 1 || true
-          # Then deploy dependent stacks (processing, worker, api)
-          cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never --concurrency 1
+          # Strategy to handle layer export conflicts:
+          # 1. Deploy dependent stacks first (they will use existing layer)
+          # 2. Then deploy layer (if it needs update, dependent stacks already released the export)
+          # 3. Finally deploy dependent stacks again to use new layer version
+          cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never || true
+          cdk deploy EmailMarketingLayerStack --require-approval never || true
+          cdk deploy --all --require-approval never
 
       - name: Get API URL
         id: api-url
@@ -211,11 +213,13 @@ jobs:
           export ENVIRONMENT=production
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID_PROD }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          # Deploy stacks in order to avoid CloudFormation export conflicts
-          # First deploy base stacks (storage, security, layer)
-          cdk deploy EmailMarketingStorageStack EmailMarketingSecurityStack EmailMarketingLayerStack --require-approval never --concurrency 1 || true
-          # Then deploy dependent stacks (processing, worker, api)
-          cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never --concurrency 1
+          # Strategy to handle layer export conflicts:
+          # 1. Deploy dependent stacks first (they will use existing layer)
+          # 2. Then deploy layer (if it needs update, dependent stacks already released the export)
+          # 3. Finally deploy dependent stacks again to use new layer version
+          cdk deploy EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never || true
+          cdk deploy EmailMarketingLayerStack --require-approval never || true
+          cdk deploy --all --require-approval never
 
       - name: Get API URL
         id: api-url
