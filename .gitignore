@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# CDK
+cdk.out/
+cdk.context.json
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.csv
+/tmp/
+
+# Logs
+*.log
+
+# Lambda dependencies (now using Lambda Layer)
+infrastructure/functions/aws_xray_sdk/
+infrastructure/functions/exceptiongroup/
+infrastructure/functions/multipart/
+infrastructure/functions/six.py
+infrastructure/functions/typing_extensions.py
+infrastructure/functions/*.dist-info/
+infrastructure/functions/*.egg-info/
+infrastructure/functions/__pycache__/
+infrastructure/functions/*.pyc
+

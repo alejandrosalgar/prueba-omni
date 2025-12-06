@@ -1,0 +1,102 @@
+name: Test and Lint
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort ruff mypy
+
+      - name: Check code formatting with black
+        run: black --check .
+
+      - name: Check import sorting with isort
+        run: isort --check-only .
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Type check with mypy
+        run: |
+          mypy infrastructure/ app.py --ignore-missing-imports || true
+
+  validate-cdk:
+    name: Validate CDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install CDK dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Validate CDK synthesis
+        run: cdk synth --all
+
+  build-layer-test:
+    name: Test Layer Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test Lambda Layer build
+        run: |
+          layerPath="infrastructure/functions/layer"
+          pythonPath="$layerPath/python/lib/python3.11/site-packages"
+          
+          # Clean and build
+          rm -rf $pythonPath
+          mkdir -p $pythonPath
+          
+          docker run --rm \
+            -v "$PWD/$layerPath:/var/task" \
+            -w /var/task \
+            python:3.11-slim \
+            /bin/sh -c "pip install --no-user -r requirements.txt -t python/lib/python3.11/site-packages"
+          
+          # Verify
+          if [ ! -d "$pythonPath" ] || [ -z "$(ls -A $pythonPath)" ]; then
+            echo "ERROR: Layer build failed"
+            exit 1
+          fi
+          
+          echo "Layer build test passed"
+

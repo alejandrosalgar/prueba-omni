@@ -1,0 +1,217 @@
+name: Deploy Email Marketing System
+
+on:
+  push:
+    branches:
+      - main      # Production
+      - develop   # Development
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  validate:
+    name: Validate Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install CDK dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Validate CDK synth
+        run: cdk synth --all
+
+      - name: Lint Python code
+        run: |
+          pip install black isort ruff mypy
+          black --check .
+          isort --check-only .
+          ruff check .
+          # mypy . --ignore-missing-imports
+
+  build-layer:
+    name: Build Lambda Layer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Lambda Layer
+        run: |
+          layerPath="infrastructure/functions/layer"
+          pythonPath="$layerPath/python/lib/python3.11/site-packages"
+          
+          # Clean layer directory
+          rm -rf $pythonPath
+          mkdir -p $pythonPath
+          
+          # Build layer using Docker
+          docker run --rm \
+            -v "$PWD/$layerPath:/var/task" \
+            -w /var/task \
+            python:3.11-slim \
+            /bin/sh -c "pip install --no-user -r requirements.txt -t python/lib/python3.11/site-packages"
+          
+          # Verify layer was built
+          if [ ! -d "$pythonPath" ] || [ -z "$(ls -A $pythonPath)" ]; then
+            echo "ERROR: Layer build failed"
+            exit 1
+          fi
+          
+          echo "Layer built successfully"
+
+      - name: Upload layer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-layer
+          path: infrastructure/functions/layer/python
+          retention-days: 1
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: [validate, build-layer]
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'development')
+    environment:
+      name: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install CDK dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Download layer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-layer
+          path: infrastructure/functions/layer/python
+
+      - name: Bootstrap CDK (if needed)
+        run: cdk bootstrap aws://${{ secrets.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} || true
+
+      - name: Deploy CDK stacks
+        run: |
+          export ENVIRONMENT=development
+          export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
+          export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
+          cdk deploy --all --require-approval never
+
+      - name: Get API URL
+        id: api-url
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name EmailMarketingApiStack \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "API URL: $API_URL"
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: [validate, build-layer]
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install CDK dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Download layer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-layer
+          path: infrastructure/functions/layer/python
+
+      - name: Bootstrap CDK (if needed)
+        run: cdk bootstrap aws://${{ secrets.AWS_ACCOUNT_ID_PROD }}/${{ env.AWS_REGION }} || true
+
+      - name: Deploy CDK stacks
+        run: |
+          export ENVIRONMENT=production
+          export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID_PROD }}
+          export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
+          cdk deploy --all --require-approval never
+
+      - name: Get API URL
+        id: api-url
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name EmailMarketingApiStack \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text)
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "API URL: $API_URL"
+
