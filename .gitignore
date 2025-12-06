@@ -43,6 +43,9 @@ Thumbs.db
 
 # Test files
 test_*.csv
+emails.csv
+last-batch-id.txt
+logs-evidence.txt
 /tmp/
 
 # Logs

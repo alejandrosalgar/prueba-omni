@@ -1,5 +1,14 @@
 # Script simple para subir CSV
-$API_URL = "https://e9yczp0zwb.execute-api.us-east-1.amazonaws.com/v1/"
+# Obtiene la URL del API automáticamente desde CloudFormation
+$API_URL = aws cloudformation describe-stacks --stack-name EmailMarketingApiStack --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text
+
+if (-not $API_URL) {
+    Write-Host "ERROR: No se pudo obtener la URL del API. Verifica que el stack esté desplegado." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "API URL: $API_URL" -ForegroundColor Cyan
+
 $csvPath = "emails.csv"
 
 if (-not (Test-Path $csvPath)) {

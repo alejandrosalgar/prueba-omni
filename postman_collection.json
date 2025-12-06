@@ -1,0 +1,141 @@
+{
+  "info": {
+    "name": "Email Marketing API",
+    "description": "Collection para probar el sistema de Email Marketing según el enunciado del desafío técnico",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload CSV",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "emails.csv",
+              "description": "Archivo CSV con columnas: email, subject, content"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{api_url}}/upload",
+          "host": ["{{api_url}}"],
+          "path": ["upload"]
+        },
+        "description": "Sube un archivo CSV para procesar. Devuelve batchId y status."
+      },
+      "response": []
+    },
+    {
+      "name": "GraphQL - List by Batch ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query { listEmailStatus(batchId: \\\"{{batch_id}}\\\", limit: 10) { items { batchId email status subject createdAt sentAt errorMessage } total } }\"\n}"
+        },
+        "url": {
+          "raw": "{{api_url}}/graphql",
+          "host": ["{{api_url}}"],
+          "path": ["graphql"]
+        },
+        "description": "Consulta emails por batchId. Muestra total, enqueued, skipped."
+      },
+      "response": []
+    },
+    {
+      "name": "GraphQL - List by Status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query { listEmailStatus(status: [\\\"SENT\\\"], limit: 10) { items { batchId email status subject sentAt } total } }\"\n}"
+        },
+        "url": {
+          "raw": "{{api_url}}/graphql",
+          "host": ["{{api_url}}"],
+          "path": ["graphql"]
+        },
+        "description": "Consulta emails filtrados por status (PENDING, SENT, ERROR)."
+      },
+      "response": []
+    },
+    {
+      "name": "GraphQL - List by Date Range",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query { listEmailStatus(fromDate: \\\"2024-12-06T00:00:00\\\", toDate: \\\"2024-12-06T23:59:59\\\", limit: 10) { items { batchId email status createdAt } total } }\"\n}"
+        },
+        "url": {
+          "raw": "{{api_url}}/graphql",
+          "host": ["{{api_url}}"],
+          "path": ["graphql"]
+        },
+        "description": "Consulta emails por rango de fechas (from/to)."
+      },
+      "response": []
+    },
+    {
+      "name": "GraphQL - List All",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query { listEmailStatus(limit: 10) { items { batchId email status subject createdAt } total } }\"\n}"
+        },
+        "url": {
+          "raw": "{{api_url}}/graphql",
+          "host": ["{{api_url}}"],
+          "path": ["graphql"]
+        },
+        "description": "Lista todos los emails sin filtros."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_url",
+      "value": "https://TU-API-ID.execute-api.us-east-1.amazonaws.com/v1",
+      "type": "string",
+      "description": "URL base del API Gateway. Obtener desde CloudFormation stack EmailMarketingApiStack"
+    },
+    {
+      "key": "batch_id",
+      "value": "",
+      "type": "string",
+      "description": "Batch ID obtenido después de subir un CSV"
+    }
+  ]
+}
+

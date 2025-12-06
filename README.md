@@ -6,61 +6,46 @@ A production-ready serverless email marketing system built with AWS CDK, FastAPI
 
 ### System Overview
 
-```
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-       │
-       │ HTTP/REST
-       ▼
-┌─────────────────────────────────┐
-│      API Gateway (REST API)      │
-│  - POST /upload                  │
-│  - POST /graphql                 │
-│  - GET /docs                     │
-└──────┬───────────────────────────┘
-       │
-       ▼
-┌─────────────────────────────────┐
-│   FastAPI Lambda (api_handler)  │
-│  - File upload handling          │
-│  - Pre-signed URL generation     │
-│  - GraphQL endpoint              │
-└──────┬───────────────────────────┘
-       │
-       ├──────────────────────────┐
-       │                           │
-       ▼                           ▼
-┌──────────────────┐      ┌──────────────────────┐
-│   S3 Bucket      │      │  CSV Processing      │
-│  (CSV Storage)   │      │  Lambda              │
-└──────────────────┘      └──────┬───────────────┘
-                                 │
-                                 ▼
-                          ┌──────────────┐
-                          │  SQS Queue   │
-                          │ (Email Tasks) │
-                          └──────┬───────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    │                         │
-                    ▼                         ▼
-            ┌──────────────┐         ┌──────────────┐
-            │ Email Worker │         │     DLQ      │
-            │   Lambda     │         │ (Failed)    │
-            └──────┬───────┘         └──────────────┘
-                   │
-                   ▼
-            ┌──────────────┐
-            │  AWS SES     │
-            │ (Email Send) │
-            └──────────────┘
-                   │
-                   ▼
-            ┌──────────────┐
-            │  DynamoDB    │
-            │ (Status)     │
-            └──────────────┘
+```mermaid
+graph TB
+    Client[Client Application]
+    APIGateway[API Gateway<br/>REST API]
+    FastAPILambda[FastAPI Lambda<br/>api_handler]
+    S3[S3 Bucket<br/>CSV Storage]
+    CSVProcessing[CSV Processing<br/>Lambda]
+    SQS[SQS Queue<br/>Email Tasks]
+    EmailWorker[Email Worker<br/>Lambda]
+    DLQ[Dead Letter Queue<br/>Failed Messages]
+    SES[AWS SES<br/>Email Sending]
+    DynamoDB[DynamoDB<br/>Email Status]
+    SecretsManager[Secrets Manager<br/>Configuration]
+
+    Client -->|HTTP/REST| APIGateway
+    APIGateway -->|POST /upload<br/>POST /graphql| FastAPILambda
+    FastAPILambda -->|Upload CSV| S3
+    FastAPILambda -->|Invoke| CSVProcessing
+    FastAPILambda -->|Read| DynamoDB
+    FastAPILambda -->|Read| SecretsManager
+    CSVProcessing -->|Read| S3
+    CSVProcessing -->|Write| DynamoDB
+    CSVProcessing -->|Send Messages| SQS
+    SQS -->|Trigger| EmailWorker
+    SQS -.->|Failed Messages| DLQ
+    EmailWorker -->|Read| SecretsManager
+    EmailWorker -->|Send Emails| SES
+    EmailWorker -->|Update Status| DynamoDB
+
+    style Client fill:#e1f5ff
+    style APIGateway fill:#fff4e1
+    style FastAPILambda fill:#ffe1f5
+    style S3 fill:#e1ffe1
+    style CSVProcessing fill:#ffe1f5
+    style SQS fill:#fff4e1
+    style EmailWorker fill:#ffe1f5
+    style DLQ fill:#ffe1e1
+    style SES fill:#e1e1ff
+    style DynamoDB fill:#e1ffe1
+    style SecretsManager fill:#f5e1ff
 ```
 
 ### Core Components
@@ -439,40 +424,81 @@ bob@example.com,Promo,Get 20% off this week.
 
 ## 🧪 Testing
 
-### Test CSV Upload
+### Quick Test (PowerShell)
 
-1. **Create test CSV file**
-   ```bash
-   cat > test_emails.csv << EOF
-   email,subject,content
-   test1@example.com,Test Email 1,This is a test email
-   test2@example.com,Test Email 2,This is another test email
-   EOF
+1. **Upload CSV file**
+   ```powershell
+   .\upload.ps1
+   ```
+   This script automatically gets the API URL and uploads `emails.csv`.
+
+2. **Check email status**
+   ```powershell
+   .\status.ps1 -BatchId "your-batch-id"
+   ```
+   Or query all emails:
+   ```powershell
+   .\status.ps1
    ```
 
-2. **Upload CSV**
+### Quick Test (Bash)
+
+1. **Upload CSV file**
+   ```bash
+   ./scripts/test_upload.sh
+   ```
+
+2. **Query GraphQL**
+   ```bash
+   ./scripts/test_graphql.sh [batch-id]
+   ```
+
+### Manual Testing with curl
+
+1. **Get API URL**
    ```bash
    API_URL=$(aws cloudformation describe-stacks \
      --stack-name EmailMarketingApiStack \
      --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
      --output text)
-
-   curl -X POST ${API_URL}upload \
-     -F "file=@test_emails.csv"
    ```
 
-3. **Query status via GraphQL**
+2. **Upload CSV**
+   ```bash
+   curl -X POST ${API_URL}upload \
+     -F "file=@emails.csv"
+   ```
+
+3. **Query by batch ID**
    ```bash
    curl -X POST ${API_URL}graphql \
      -H "Content-Type: application/json" \
      -d '{
-       "query": "query { listEmailStatus(limit: 10) { items { batchId email status } total } }"
+       "query": "query { listEmailStatus(batchId: \"your-batch-id\", limit: 10) { items { batchId email status subject createdAt } total } }"
      }'
    ```
 
-### Test Scripts
+4. **Query by status**
+   ```bash
+   curl -X POST ${API_URL}graphql \
+     -H "Content-Type: application/json" \
+     -d '{
+       "query": "query { listEmailStatus(status: [\"SENT\"], limit: 10) { items { batchId email status sentAt } total } }"
+     }'
+   ```
 
-See `scripts/test_*.sh` for example test scripts.
+5. **Query by date range**
+   ```bash
+   curl -X POST ${API_URL}graphql \
+     -H "Content-Type: application/json" \
+     -d '{
+       "query": "query { listEmailStatus(fromDate: \"2024-01-01T00:00:00\", toDate: \"2024-01-31T23:59:59\", limit: 10) { items { batchId email status createdAt } total } }"
+     }'
+   ```
+
+### Postman Collection
+
+Import `postman_collection.json` into Postman or Insomnia for easy testing.
 
 ## 📊 Monitoring
 
