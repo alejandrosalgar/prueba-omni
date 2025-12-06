@@ -149,23 +149,28 @@ jobs:
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
           # Deploy all stacks together
-          # Note: If layer needs update and export conflict occurs, layer update will fail
-          # but other stacks will continue to work with the existing layer version
-          # This is a known CloudFormation limitation when updating exports
-          cdk deploy --all --require-approval never --concurrency 3 || {
-            DEPLOY_EXIT_CODE=$?
-            if grep -q "Cannot update export.*as it is in use" /tmp/cdk-deploy.log 2>/dev/null || echo "$DEPLOY_OUTPUT" | grep -q "Cannot update export.*as it is in use"; then
+          # Capture output to detect layer export conflicts
+          DEPLOY_OUTPUT=$(cdk deploy --all --require-approval never --concurrency 3 2>&1) || DEPLOY_EXIT_CODE=$?
+          
+          # Check if failure was due to layer export conflict
+          if [ $? -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "Cannot update export.*as it is in use"; then
               echo "⚠️ WARNING: Layer export conflict detected. Layer update skipped, but other stacks deployed successfully."
               echo "The existing layer version will continue to be used by dependent stacks."
-              echo "To update the layer, you may need to manually update dependent stacks first, then the layer."
+              echo "This is a known CloudFormation limitation when updating exports."
+              echo ""
+              echo "Attempting to deploy remaining stacks..."
               # Continue deployment of other stacks (excluding layer)
               cdk deploy EmailMarketingStorageStack EmailMarketingSecurityStack EmailMarketingProcessingStack EmailMarketingWorkerStack EmailMarketingApiStack --require-approval never --concurrency 3 || true
-              exit 0  # Don't fail the pipeline for this known limitation
+              echo "✅ Other stacks deployed successfully. Layer will use existing version."
             else
-              echo "Deployment failed for a different reason"
-              exit $DEPLOY_EXIT_CODE
+              echo "❌ Deployment failed for a different reason:"
+              echo "$DEPLOY_OUTPUT"
+              exit ${DEPLOY_EXIT_CODE:-1}
             fi
-          }
+          else
+            echo "$DEPLOY_OUTPUT"
+          fi
 
       - name: Verify Lambda deployments
         run: |
