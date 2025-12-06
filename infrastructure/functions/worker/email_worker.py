@@ -11,7 +11,7 @@ This handler consumes messages from SQS and sends emails via SES:
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import boto3
 from aws_xray_sdk.core import patch_all
@@ -26,10 +26,10 @@ secretsmanager = boto3.client("secretsmanager")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "")
 SECRET_NAME = os.getenv("SECRET_NAME", "")
 
-_config_cache: Optional[Dict[str, Any]] = None
+_config_cache: dict[str, Any] | None = None
 
 
-def get_config() -> Dict[str, Any]:
+def get_config() -> dict[str, Any]:
     """
     Get configuration from Secrets Manager.
 
@@ -71,7 +71,7 @@ def send_email(
     content: str,
     from_email: str,
     dry_run: bool = True,
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Send email via SES or simulate in dry-run mode.
 
@@ -116,7 +116,7 @@ def send_email(
         return False, str(e)
 
 
-def process_email_task(message: Dict[str, Any]) -> Dict[str, Any]:
+def process_email_task(message: dict[str, Any]) -> dict[str, Any]:
     """
     Process a single email task from SQS.
 
@@ -204,7 +204,7 @@ def process_email_task(message: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
     Lambda handler for email worker.
 
@@ -224,8 +224,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             - body: JSON string with processing results
             - batchItemFailures: List of failed message IDs (for SQS retry)
     """
-    results: List[Dict[str, Any]] = []
-    batch_item_failures: List[Dict[str, str]] = []
+    results: list[dict[str, Any]] = []
+    batch_item_failures: list[dict[str, str]] = []
 
     try:
         for record in event.get("Records", []):
@@ -246,7 +246,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if message_id:
                     batch_item_failures.append({"itemIdentifier": message_id})
 
-        response: Dict[str, Any] = {
+        response: dict[str, Any] = {
             "statusCode": 200,
             "body": json.dumps({"processed": len(results), "results": results}),
         }

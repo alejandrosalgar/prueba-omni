@@ -7,7 +7,7 @@ This stack creates and manages processing resources including:
 - Lambda function for CSV processing
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aws_cdk import CfnOutput, Duration, Stack, Tags
 from aws_cdk import aws_lambda as _lambda
@@ -40,9 +40,9 @@ class EmailProcessingStack(Stack):
         self,
         scope: Construct,
         construct_id: str,
-        storage_stack_outputs: Optional[Dict[str, str]] = None,
-        security_stack_outputs: Optional[Dict[str, str]] = None,
-        lambda_layer: Optional[_lambda.ILayerVersion] = None,
+        storage_stack_outputs: dict[str, str] | None = None,
+        security_stack_outputs: dict[str, str] | None = None,
+        lambda_layer: _lambda.ILayerVersion | None = None,
         environment: str = DEFAULT_ENVIRONMENT,
         **kwargs: Any,
     ) -> None:
@@ -108,7 +108,7 @@ class EmailProcessingStack(Stack):
         from aws_cdk import aws_iam as iam
 
         lambda_role_arn = self.security_outputs.get("lambda_execution_role_arn", "")
-        lambda_role: Optional[iam.IRole] = None
+        lambda_role: iam.IRole | None = None
         if lambda_role_arn:
             lambda_role = iam.Role.from_role_arn(self, "LambdaExecutionRoleImport", lambda_role_arn)
 
@@ -225,7 +225,7 @@ class EmailProcessingStack(Stack):
         Tags.of(self).add("Environment", self.env_name)
         Tags.of(self).add("StackType", "Processing")
 
-    def get_processing_outputs(self) -> Dict[str, str]:
+    def get_processing_outputs(self) -> dict[str, str]:
         """
         Get processing outputs for other stacks.
 

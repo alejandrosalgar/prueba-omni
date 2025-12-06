@@ -6,7 +6,6 @@ This script provides utilities for deploying and managing the email marketing in
 """
 
 import argparse
-import os
 import subprocess
 import sys
 
@@ -73,7 +72,7 @@ class EmailMarketingDeployer:
         print(f"STACK Deploying {stack_name}...")
 
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["cdk", "deploy", stack_name, "--require-approval", "never"],
                 capture_output=True,
                 text=True,
@@ -134,7 +133,7 @@ class EmailMarketingDeployer:
         print(f"DESTROY Destroying {stack_name}...")
 
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["cdk", "destroy", stack_name, "--force"],
                 capture_output=True,
                 text=True,

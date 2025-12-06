@@ -9,14 +9,14 @@ import base64
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import boto3
 from boto3.dynamodb.conditions import Key
 from strawberry import field, type
 
 dynamodb = boto3.resource("dynamodb")
-table_name: Optional[str] = None
+table_name: str | None = None
 
 
 def get_table() -> Any:
@@ -54,8 +54,8 @@ class EmailStatus:
     status: str
     created_at: str
     updated_at: str
-    error_message: Optional[str] = None
-    sent_at: Optional[str] = None
+    error_message: str | None = None
+    sent_at: str | None = None
 
 
 @type
@@ -66,8 +66,8 @@ class EmailStatusConnection:
     Provides pagination support for email status queries.
     """
 
-    items: List[EmailStatus]
-    next_token: Optional[str] = None
+    items: list[EmailStatus]
+    next_token: str | None = None
     total: int
 
 
@@ -82,12 +82,12 @@ class Query:
     @field
     def list_email_status(
         self,
-        status: Optional[List[str]] = None,
-        from_date: Optional[str] = None,
-        to_date: Optional[str] = None,
-        batch_id: Optional[str] = None,
-        limit: Optional[int] = 50,
-        next_token: Optional[str] = None,
+        status: list[str] | None = None,
+        from_date: str | None = None,
+        to_date: str | None = None,
+        batch_id: str | None = None,
+        limit: int | None = 50,
+        next_token: str | None = None,
     ) -> EmailStatusConnection:
         """
         List email status with filters.
@@ -117,12 +117,12 @@ class Query:
 
 
 def list_email_status(
-    status: Optional[List[str]] = None,
-    from_date: Optional[str] = None,
-    to_date: Optional[str] = None,
-    batch_id: Optional[str] = None,
-    limit: Optional[int] = 50,
-    next_token: Optional[str] = None,
+    status: list[str] | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    batch_id: str | None = None,
+    limit: int | None = 50,
+    next_token: str | None = None,
 ) -> EmailStatusConnection:
     """
     Query DynamoDB for email status with filtering and pagination.
@@ -159,11 +159,11 @@ def list_email_status(
     if limit < 1:
         limit = 1
 
-    items: List[Dict[str, Any]] = []
-    last_evaluated_key: Optional[Dict[str, Any]] = None
+    items: list[dict[str, Any]] = []
+    last_evaluated_key: dict[str, Any] | None = None
 
     try:
-        exclusive_start_key: Optional[Dict[str, Any]] = None
+        exclusive_start_key: dict[str, Any] | None = None
         if next_token:
             try:
                 exclusive_start_key = json.loads(base64.b64decode(next_token).decode())
@@ -171,7 +171,7 @@ def list_email_status(
                 pass
 
         if batch_id:
-            query_params: Dict[str, Any] = {
+            query_params: dict[str, Any] = {
                 "KeyConditionExpression": Key("batch_id").eq(batch_id),
                 "Limit": limit,
             }
@@ -182,7 +182,7 @@ def list_email_status(
             last_evaluated_key = response.get("LastEvaluatedKey")
 
         elif status and len(status) > 0:
-            all_items: List[Dict[str, Any]] = []
+            all_items: list[dict[str, Any]] = []
             for stat in status:
                 response = table.query(
                     IndexName="status-created_at-index",
@@ -192,7 +192,7 @@ def list_email_status(
                 all_items.extend(response.get("Items", []))
 
             if from_date or to_date:
-                filtered_items: List[Dict[str, Any]] = []
+                filtered_items: list[dict[str, Any]] = []
                 for item in all_items:
                     created_at = item.get("created_at", "")
                     if from_date and created_at < from_date:
@@ -226,14 +226,14 @@ def list_email_status(
                 items = filtered_items
 
         else:
-            scan_params: Dict[str, Any] = {"Limit": limit}
+            scan_params: dict[str, Any] = {"Limit": limit}
             if exclusive_start_key:
                 scan_params["ExclusiveStartKey"] = exclusive_start_key
             response = table.scan(**scan_params)
             items = response.get("Items", [])
             last_evaluated_key = response.get("LastEvaluatedKey")
 
-        email_statuses: List[EmailStatus] = []
+        email_statuses: list[EmailStatus] = []
         for item in items:
             email_statuses.append(
                 EmailStatus(
@@ -249,7 +249,7 @@ def list_email_status(
                 )
             )
 
-        next_token_str: Optional[str] = None
+        next_token_str: str | None = None
         if last_evaluated_key:
             next_token_str = base64.b64encode(json.dumps(last_evaluated_key).encode()).decode()
 

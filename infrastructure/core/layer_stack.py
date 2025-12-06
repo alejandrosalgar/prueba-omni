@@ -5,7 +5,7 @@ This stack creates a shared Lambda Layer containing all Python dependencies
 used by the Lambda functions, reducing package size and improving deployment speed.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aws_cdk import Stack, Tags
 from aws_cdk import aws_lambda as _lambda

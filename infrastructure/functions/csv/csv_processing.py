@@ -15,7 +15,7 @@ import io
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import boto3
 from aws_xray_sdk.core import patch_all
@@ -49,7 +49,7 @@ def calculate_file_hash(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
-def validate_csv_row(row: Dict[str, str]) -> Tuple[bool, str]:
+def validate_csv_row(row: dict[str, str]) -> tuple[bool, str]:
     """
     Validate a CSV row.
 
@@ -74,7 +74,7 @@ def validate_csv_row(row: Dict[str, str]) -> Tuple[bool, str]:
     return True, ""
 
 
-def process_csv_file(batch_id: str, s3_bucket: str, s3_key: str) -> Dict[str, Any]:
+def process_csv_file(batch_id: str, s3_bucket: str, s3_key: str) -> dict[str, Any]:
     """
     Process CSV file from S3.
 
@@ -139,8 +139,8 @@ def process_csv_file(batch_id: str, s3_bucket: str, s3_key: str) -> Dict[str, An
         if len(rows) > MAX_ROWS:
             raise ValueError(f"CSV exceeds maximum of {MAX_ROWS} rows")
 
-        valid_rows: List[Dict[str, Any]] = []
-        invalid_rows: List[Dict[str, Any]] = []
+        valid_rows: list[dict[str, Any]] = []
+        invalid_rows: list[dict[str, Any]] = []
         enqueued_count = 0
         skipped_count = 0
 
@@ -237,7 +237,7 @@ def process_csv_file(batch_id: str, s3_bucket: str, s3_key: str) -> Dict[str, An
         raise
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
     Lambda handler for CSV processing.
 
@@ -261,7 +261,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         batch_id = event.get("batch_id")
         s3_bucket = event.get("s3_bucket", S3_BUCKET_NAME)
         s3_key = event.get("s3_key")
-        filename = event.get("filename", "unknown.csv")
 
         if not batch_id or not s3_key:
             raise ValueError("Missing required fields: batch_id or s3_key")

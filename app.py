@@ -6,7 +6,6 @@ the deployment of all infrastructure stacks for the email marketing system.
 """
 
 import os
-from typing import List
 
 import aws_cdk as cdk
 from aws_cdk import Environment, Tags
@@ -56,7 +55,7 @@ def create_app() -> cdk.App:
     return app
 
 
-def _create_stacks(app: cdk.App, env: Environment, environment: str) -> List[cdk.Stack]:
+def _create_stacks(app: cdk.App, env: Environment, environment: str) -> list[cdk.Stack]:
     """
     Create all infrastructure stacks.
 
@@ -150,7 +149,7 @@ def _create_stacks(app: cdk.App, env: Environment, environment: str) -> List[cdk
     return stacks
 
 
-def _setup_stack_dependencies(stacks: List[cdk.Stack]) -> None:
+def _setup_stack_dependencies(stacks: list[cdk.Stack]) -> None:
     """
     Set up dependencies between stacks.
 
@@ -179,7 +178,7 @@ def _setup_stack_dependencies(stacks: List[cdk.Stack]) -> None:
     api_stack.add_dependency(layer_stack)
 
 
-def _apply_global_tags(stacks: List[cdk.Stack], environment: str) -> None:
+def _apply_global_tags(stacks: list[cdk.Stack], environment: str) -> None:
     """
     Apply global tags to all stacks.
 

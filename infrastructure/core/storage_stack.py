@@ -6,7 +6,7 @@ This stack creates and manages all storage-related resources including:
 - DynamoDB table for email status tracking
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, Stack, Tags
 from aws_cdk import aws_dynamodb as dynamodb
@@ -211,7 +211,7 @@ class EmailStorageStack(Stack):
         Tags.of(self).add("Environment", self.env_name)
         Tags.of(self).add("StackType", "Storage")
 
-    def get_storage_outputs(self) -> Dict[str, str]:
+    def get_storage_outputs(self) -> dict[str, str]:
         """
         Get storage outputs for other stacks.
 

@@ -6,7 +6,7 @@ This stack creates and manages all security-related resources including:
 - Secrets Manager for sensitive configuration
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aws_cdk import CfnOutput, Stack, Tags
 from aws_cdk import aws_iam as iam
@@ -32,7 +32,7 @@ class EmailSecurityStack(Stack):
         self,
         scope: Construct,
         construct_id: str,
-        storage_stack_outputs: Optional[Dict[str, str]] = None,
+        storage_stack_outputs: dict[str, str] | None = None,
         environment: str = DEFAULT_ENVIRONMENT,
         **kwargs: Any,
     ) -> None:
@@ -245,7 +245,7 @@ class EmailSecurityStack(Stack):
         Tags.of(self).add("StackType", "Security")
         Tags.of(self).add("SecurityLevel", "High")
 
-    def get_security_outputs(self) -> Dict[str, str]:
+    def get_security_outputs(self) -> dict[str, str]:
         """
         Get security outputs for other stacks.
 

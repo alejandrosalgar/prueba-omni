@@ -10,7 +10,7 @@ This handler provides:
 import json
 import os
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
 
 import boto3
 from aws_xray_sdk.core import patch_all
@@ -48,7 +48,7 @@ SECRET_NAME = os.getenv("SECRET_NAME", "")
 
 
 @app.get("/")
-async def root() -> Dict[str, Any]:
+async def root() -> dict[str, Any]:
     """
     Root endpoint providing API information.
 
@@ -69,8 +69,8 @@ async def root() -> Dict[str, Any]:
 @app.post("/upload")
 async def upload_csv(
     file: UploadFile = File(...),
-    use_presigned_url: Optional[bool] = Form(False),
-) -> Dict[str, Any]:
+    use_presigned_url: bool | None = Form(False),
+) -> dict[str, Any]:
     """
     Upload CSV file endpoint.
 
@@ -151,11 +151,11 @@ async def upload_csv(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}") from e
 
 
 @app.post("/upload/presigned-url")
-async def get_presigned_url(filename: str = Form(...)) -> Dict[str, Any]:
+async def get_presigned_url(filename: str = Form(...)) -> dict[str, Any]:
     """
     Get pre-signed URL for CSV upload.
 
@@ -193,7 +193,7 @@ async def get_presigned_url(filename: str = Form(...)) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating presigned URL: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating presigned URL: {str(e)}") from e
 
 
 schema = Schema(query=Query)
@@ -201,7 +201,7 @@ graphql_app = GraphQLRouter(schema)
 app.include_router(graphql_app, prefix="/graphql")
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
     Lambda handler for FastAPI application.
 
