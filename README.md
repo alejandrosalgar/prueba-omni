@@ -4,8 +4,6 @@ A production-ready serverless email marketing system built with AWS CDK, FastAPI
 
 ## 🏗️ Architecture
 
-> 📊 **Para un diagrama detallado de los servicios AWS con Mermaid, consulta [AWS_ARCHITECTURE_DIAGRAM.md](./AWS_ARCHITECTURE_DIAGRAM.md)**
-
 ### System Overview
 
 ```
