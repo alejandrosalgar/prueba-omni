@@ -46,6 +46,10 @@ jobs:
         run: npm install -g aws-cdk
 
       - name: Validate CDK synth
+        env:
+          CDK_DEFAULT_ACCOUNT: "123456789012"  # Dummy account for validation
+          CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}
+          ENVIRONMENT: development
         run: cdk synth --all
 
       - name: Lint Python code
